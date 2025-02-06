@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Sparkles,
   Loader,
@@ -8,13 +8,13 @@ import {
   AlertCircle,
   Copy,
   Check,
+  Lock,
 } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Auth, { AuthProvider } from "./auth";
 
 import { useSupabase } from "./supabase";
 import ImageUpload from "./imgupload";
-
 
 const CaptionGenerator = () => {
   const [generationMethod, setGenerationMethod] = useState("mood");
@@ -29,21 +29,61 @@ const CaptionGenerator = () => {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const { user, loading: authLoading } = AuthProvider({ children: null });
-const { saveCaptionHistory, trackAnalytics } = useSupabase();
 
+  const [usageCount, setUsageCount] = useState({ text: 0, image: 0 });
+  const [isPremium, setIsPremium] = useState(false);
 
+  const {
+    saveCaptionHistory,
+    trackAnalytics,
+    getUserSubscription,
+    updateUserUsage,
+  } = useSupabase();
 
- if (authLoading) {
-   return (
-     <div className="flex items-center justify-center min-h-screen">
-       <Loader className="h-8 w-8 animate-spin text-purple-500" />
-     </div>
-   );
- }
+  useEffect(() => {
+    if (user) {
+      loadUserData();
+    }
+  }, [user]);
 
- if (!user) {
-   return <Auth onAuth={(user) => console.log("Authenticated:", user)} />;
- }
+  const loadUserData = async () => {
+    const subscription = await getUserSubscription(user.id);
+    setIsPremium(subscription.isPremium);
+    setUsageCount(subscription.usage || { text: 0, image: 0 });
+  };
+
+  const checkUsageLimits = () => {
+    if (isPremium) return true;
+
+    if (generationMethod === "image") {
+      if (usageCount.image >= 2) {
+        setError(
+          "You've reached the limit for image captions. Upgrade to premium for unlimited access!"
+        );
+        return false;
+      }
+    } else {
+      if (usageCount.text >= 10) {
+        setError(
+          "You've reached the limit for text captions. Upgrade to premium for unlimited access!"
+        );
+        return false;
+      }
+    }
+    return true;
+  };
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader className="h-8 w-8 animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Auth onAuth={(user) => console.log("Authenticated:", user)} />;
+  }
 
   const lengthConfigs = {
     short: {
@@ -130,136 +170,176 @@ const { saveCaptionHistory, trackAnalytics } = useSupabase();
       setError("Failed to copy to clipboard");
     }
   };
+  const generateContent = async () => {
+    setError("");
+    if (!checkUsageLimits()) return;
 
-const generateContent = async () => {
-  setError("");
-
-  // Validate inputs
-  if (
-    !generationMethod ||
-    (!selectedCategory && generationMethod !== "image") ||
-    (generationMethod === "image" && !selectedImage)
-  ) {
-    setError("Please fill in all required fields!");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    // Track analytics at the start
-    await trackAnalytics(generationMethod, selectedCategory);
-
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const lengthConfig = lengthConfigs[captionLength];
-    const customPrompt = customInput
-      ? ` Consider this context: ${customInput}.`
-      : "";
-
-    let prompt = `${lengthConfig.prompt} (${lengthConfig.wordCount} words) for Instagram that is engaging and authentic.`;
-
-    // Enhanced prompts for better results
-    switch (generationMethod) {
-      case "mood":
-        prompt += ` Express a ${selectedCategory} mood and emotion.${customPrompt} 
-                   Make it conversational and relatable. Include emojis naturally but not excessively. 
-                   Maintain a ${selectedCategory} tone throughout. Use relevant metaphors and expressions.
-                   Stay within ${lengthConfig.charLimit} characters.`;
-        break;
-      case "niche":
-        prompt += ` Create content for the ${selectedCategory} niche.${customPrompt} 
-                   Include valuable insights and industry-specific knowledge.
-                   Add relevant emojis and maintain professional yet engaging tone.
-                   Use niche-specific terminology appropriately.
-                   Stay within ${lengthConfig.charLimit} characters.`;
-        break;
-      case "image":
-        // For image descriptions, we should add more context
-        const imageContext = selectedImage.type.includes("image/")
-          ? `an image of type ${selectedImage.type}`
-          : selectedImage.name;
-
-        prompt += ` Create a caption for ${imageContext}.${customPrompt} 
-                   Focus on visual elements and create a story around the image.
-                   Make it visually descriptive and engaging. Include fitting emojis.
-                   Emphasize the key elements in the image.
-                   Stay within ${lengthConfig.charLimit} characters.`;
-        break;
+    if (
+      !generationMethod ||
+      (!selectedCategory && generationMethod !== "image") ||
+      (generationMethod === "image" && !selectedImage)
+    ) {
+      setError("Please fill in all required fields!");
+      return;
     }
 
-    // Generate the caption
-    const result = await model.generateContent(prompt);
-    const generatedCaption = result.response.text();
+    setLoading(true);
+    let trimmedCaption = "";
+    let generatedHashtags = [];
 
-    // Trim and format the caption
-    let trimmedCaption = generatedCaption;
-    if (trimmedCaption.length > lengthConfig.charLimit) {
-      trimmedCaption = generatedCaption.substring(0, lengthConfig.charLimit);
-      const lastPeriod = trimmedCaption.lastIndexOf(".");
-      if (lastPeriod > 0) {
-        trimmedCaption = trimmedCaption.substring(0, lastPeriod + 1);
+    try {
+      await trackAnalytics(generationMethod, selectedCategory);
+
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const lengthConfig = lengthConfigs[captionLength];
+      const customPrompt = customInput
+        ? ` Consider this context: ${customInput}.`
+        : "";
+      let prompt = `${lengthConfig.prompt} (${lengthConfig.wordCount} words) for Instagram that is engaging and authentic.`;
+
+      switch (generationMethod) {
+        case "mood":
+          prompt += ` Express a ${selectedCategory} mood and emotion.${customPrompt} 
+                Make it conversational and relatable. Include emojis naturally but not excessively. 
+                Maintain a ${selectedCategory} tone throughout. Use relevant metaphors and expressions.
+                Stay within ${lengthConfig.charLimit} characters.`;
+          break;
+        case "niche":
+          prompt += ` Create content for the ${selectedCategory} niche.${customPrompt} 
+                Include valuable insights and industry-specific knowledge.
+                Add relevant emojis and maintain professional yet engaging tone.
+                Use niche-specific terminology appropriately.
+                Stay within ${lengthConfig.charLimit} characters.`;
+          break;
+        case "image":
+          const imageContext = selectedImage.type.includes("image/")
+            ? `an image of type ${selectedImage.type}`
+            : selectedImage.name;
+          prompt += ` Create a caption for ${imageContext}.${customPrompt} 
+                Focus on visual elements and create a story around the image.
+                Make it visually descriptive and engaging. Include fitting emojis.
+                Emphasize the key elements in the image.
+                Stay within ${lengthConfig.charLimit} characters.`;
+          break;
+        default:
+          break;
       }
-    }
 
-    // Generate and process hashtags
-    const generatedHashtags = await generateHashtags(trimmedCaption);
+      const result = await model.generateContent(prompt);
+      if (!result || !result.response) {
+        throw new Error("No response from content generation");
+      }
 
-    // Save to history before updating state
-    await saveCaptionHistory(
-      trimmedCaption,
-      generatedHashtags,
-      generationMethod,
-      selectedCategory
-    );
+      const generatedCaption = result.response.text();
+      trimmedCaption = generatedCaption;
 
-    // Update state
-    setCaption(trimmedCaption);
-    setHashtags(generatedHashtags);
+      if (trimmedCaption.length > lengthConfig.charLimit) {
+        trimmedCaption = generatedCaption.substring(0, lengthConfig.charLimit);
+        const lastPeriod = trimmedCaption.lastIndexOf(".");
+        if (lastPeriod > 0) {
+          trimmedCaption = trimmedCaption.substring(0, lastPeriod + 1);
+        }
+      }
 
-    // Optional: Show success message
-    // toast.success("Caption generated successfully!");
-  } catch (error) {
-    console.error("Error:", error);
+      // Only proceed with hashtags and state updates if we have a caption
+      if (trimmedCaption) {
+        generatedHashtags = await generateHashtags(trimmedCaption);
 
-    // More specific error messages
-    if (error.message?.includes("quota")) {
-      setError("API quota exceeded. Please try again later.");
-    } else if (error.message?.includes("network")) {
-      setError("Network error. Please check your connection and try again.");
-    } else if (error.message?.includes("permission")) {
-      setError("Authentication error. Please sign in again.");
-    } else {
-      setError("Failed to generate content. Please try again.");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-      if (authLoading) {
-        return (
-          <div className="flex items-center justify-center min-h-screen">
-            <Loader className="h-8 w-8 animate-spin text-purple-500" />
-          </div>
+        await saveCaptionHistory(
+          trimmedCaption,
+          generatedHashtags,
+          generationMethod,
+          selectedCategory
         );
-      }
 
-      if (!user) {
-        return <Auth onAuth={(user) => console.log("Authenticated:", user)} />;
-      }
+        setCaption(trimmedCaption);
+        setHashtags(generatedHashtags);
 
-        const resetForm = () => {
-          setSelectedCategory("");
-          setSelectedImage(null);
-          setImagePreview(null);
-          setCustomInput("");
-          setCaption("");
-          setHashtags([]);
-          setError("");
+        const updatedUsage = {
+          text: usageCount.text + (generationMethod !== "image" ? 1 : 0),
+          image: usageCount.image + (generationMethod === "image" ? 1 : 0),
         };
+
+        await updateUserUsage(user.id, updatedUsage);
+        setUsageCount(updatedUsage);
+      } else {
+        throw new Error("Generated caption is empty");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      // Only set error if caption generation failed
+      if (!trimmedCaption) {
+        if (error.message?.includes("quota")) {
+          setError("API quota exceeded. Please try again later.");
+        } else if (error.message?.includes("network")) {
+          setError(
+            "Network error. Please check your connection and try again."
+          );
+        } else if (error.message?.includes("permission")) {
+          setError("Authentication error. Please sign in again.");
+        } else {
+          setError("Failed to generate content. Please try again.");
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader className="h-8 w-8 animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Auth onAuth={(user) => console.log("Authenticated:", user)} />;
+  }
+
+  const resetForm = () => {
+    setSelectedCategory("");
+    setSelectedImage(null);
+    setImagePreview(null);
+    setCustomInput("");
+    setCaption("");
+    setHashtags([]);
+    setError("");
+  };
+  const renderUsageStatus = () => (
+    <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <p className="text-sm font-medium">
+            {isPremium ? "Premium User" : "Free User"}
+          </p>
+          {!isPremium && (
+            <div className="text-xs text-gray-500">
+              <p>Text captions: {usageCount.text}/10</p>
+              <p>Image captions: {usageCount.image}/2</p>
+            </div>
+          )}
+        </div>
+        {!isPremium && (
+          <button
+            className="px-4 py-2 bg-purple-500 text-white rounded-lg text-sm flex items-center gap-2"
+            onClick={() => {
+              /* Add your subscription logic */
+            }}
+          >
+            <Lock className="h-4 w-4" />
+            Upgrade to Premium
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-gray-50">
       <h2 className="text-xl font-medium text-gray-900">Caption Generator</h2>
       <div className="max-w-full mx-auto py-8 px-4">
+        {renderUsageStatus()}
         <div className="space-y-4">
           {error && (
             <div className="bg-white border-l-4 border-red-500 px-3 py-2 rounded-lg">
