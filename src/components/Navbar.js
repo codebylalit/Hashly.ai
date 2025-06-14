@@ -2,13 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../logo4.png";
 
-
 const navLinks = [
   { to: "/try", label: "Try Free" },
-  { to: "/contact", label: "Contact" },
   { to: "/blog", label: "Blogs" },
   { to: "/about", label: "About" },
   { to: "/faq", label: "FAQ" },
+  { to: "/contact", label: "Contact" },
+  // {
+  //   to: "https://play.google.com/store/apps/details?id=com.caps.ai",
+  //   label: "Download App",
+  //   external: true,
+  // },
 ];
 const Navbar = () => {
   const location = useLocation();
