@@ -193,7 +193,7 @@ const Landing = () => {
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <a
-              href="https://play.google.com/store/apps/details?id=your.app.id"
+              href="https://play.google.com/store/apps/details?id=com.caps.ai"
               className="w-full sm:w-auto px-4 sm:px-6 md:px-8 py-2 sm:py-3 bg-background-card text-primary-main rounded-full text-sm sm:text-base font-bold hover:bg-accent-teal transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-accent-teal"
               target="_blank"
               rel="noopener noreferrer"
