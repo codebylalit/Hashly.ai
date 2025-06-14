@@ -8,6 +8,7 @@ import FAQ from './components/FAQ';
 import Contact from './components/Contact';
 import Navbar from './components/Navbar';
 import About from './components/About';
+import Blog from './components/Blog';
 // import FAQ from "./components/faq"; // Uncomment if/when FAQ is added
 
 // SPA Router configuration
@@ -22,6 +23,7 @@ const App = () => (
       <Route path="/faq" element={<FAQ />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/about" element={<About />} />
+      <Route path="/blog" element={<Blog />} />
     </Routes>
   </BrowserRouter>
 );

@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../logo4.png";
 
+
 const navLinks = [
   { to: "/try", label: "Try Free" },
   { to: "/contact", label: "Contact" },
-  { to: "/faq", label: "FAQ" },
+  { to: "/blog", label: "Blogs" },
   { to: "/about", label: "About" },
+  { to: "/faq", label: "FAQ" },
 ];
-
 const Navbar = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
