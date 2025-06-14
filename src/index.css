@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=chillax@400,500,600,700&display=swap');
 
 body {
-  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Chillax', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .fade-navbar {

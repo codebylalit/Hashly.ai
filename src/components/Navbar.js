@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "../logo.png";
+import logo from "../logo4.png";
 
 const navLinks = [
   { to: "/try", label: "Try Free" },

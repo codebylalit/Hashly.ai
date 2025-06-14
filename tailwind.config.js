@@ -68,7 +68,7 @@ module.exports = {
         'pulse-slow': 'pulse-slow 6s ease-in-out infinite',
       },
       fontFamily: {
-        sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Chillax', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
     },
   },
