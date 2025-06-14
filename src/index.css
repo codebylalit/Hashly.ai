@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+body {
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.fade-navbar {
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.fade-navbar.opacity-90 {
+  opacity: 0.9;
+  transform: translateY(-8px);
+}
+
+.fade-navbar.opacity-100 {
+  opacity: 1;
+  transform: translateY(0);
+} 
