@@ -278,22 +278,31 @@ const Landing = () => {
 
       {/* CTA Section */}
       <section className="py-12 sm:py-20 md:py-32 relative">
+        {/* Radial Background */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent-teal/5 via-transparent to-transparent"></div>
+
+        {/* Content Container */}
         <div className="max-w-5xl mx-auto px-4 sm:px-10 md:px-20 text-center relative z-10">
+          {/* Tagline Pill */}
           <div className="inline-block px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-accent-teal/10 text-accent-teal text-xs sm:text-sm md:text-base font-medium mb-3 sm:mb-5">
             Get Started
           </div>
 
-          <h2 className="text-base sm:text-lg md:text-2xl font-bold text-primary-main mb-4 sm:mb-6">
+          {/* Heading */}
+          <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-primary-main mb-4 sm:mb-6 leading-snug">
             Ready to Create Amazing Content?
           </h2>
 
+          {/* Subtext */}
           <p className="text-xs sm:text-sm md:text-base text-text-secondary mb-6 sm:mb-10 max-w-xl mx-auto">
-            Join creators who trust Hashly for their social media success.
+            Join creators who trust{" "}
+            <span className="font-semibold text-primary-main">Hashly</span> for
+            their social media success.
           </p>
 
+          {/* CTA Button */}
           <button
-            className="group w-full text-center sm:w-auto px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 bg-accent-teal text-text-light rounded-full text-sm sm:text-base md:text-lg font-medium hover:bg-accent-orange transition-all duration-300 flex items-center gap-2 mx-auto shadow-md hover:shadow-xl hover:scale-105"
+            className="group w-full sm:w-auto px-5 sm:px-6 md:px-8 py-3 sm:py-3.5 md:py-4 bg-accent-teal text-text-light rounded-full text-sm sm:text-base md:text-lg font-medium hover:bg-accent-orange transition-all duration-300 flex items-center justify-center gap-2 mx-auto shadow-md hover:shadow-xl hover:scale-[1.04]"
             onClick={() => navigate("/try")}
           >
             Start Creating Now
@@ -303,16 +312,18 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 border-t border-border-light">
+      <footer className="py-10 border-t border-border-light">
         <div className="max-w-7xl mx-auto px-16 sm:px-32 md:px-60">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-1 text-text-secondary">
+          <div className="flex flex-col gap-8 sm:gap-6 sm:flex-row sm:items-center sm:justify-between text-text-secondary">
+            {/* Left: Built With */}
+            <div className="flex items-center gap-1 text-sm justify-center sm:justify-start">
               <span>Built with</span>
-              <IoMdHeart className="w-4 h-4 text-teal-500" aria-label="heart" />
-              <span>for creators</span>
+              <IoMdHeart className="w-4 h-4 text-teal-500 " aria-label="heart" />
+              <span >for creators</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:gap-6 gap-2 text-text-secondary text-xs sm:text-sm text-center">
+            {/* Center: Links */}
+            <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm text-center">
               <a
                 href="/privacy"
                 className="hover:text-accent-teal transition-colors"
@@ -333,9 +344,11 @@ const Landing = () => {
               </a>
             </div>
 
-            <p className="text-xs sm:text-sm text-text-secondary text-center">
-              © {new Date().getFullYear()} Hashly. All rights reserved.
-            </p>
+            {/* Right: Copyright */}
+            <div className="text-center sm:text-right text-xs sm:text-sm">
+              © {new Date().getFullYear()}{" "}
+              <span className="font-medium">Hashly</span>. All rights reserved.
+            </div>
           </div>
         </div>
       </footer>
