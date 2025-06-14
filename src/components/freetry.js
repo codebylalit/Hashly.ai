@@ -219,33 +219,33 @@ const TryScreen = () => {
   }, [isDropdownOpen]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background-main via-background-main/95 to-background-card py-6 sm:py-12 md:py-16 px-4 sm:px-6 md:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-background-main via-background-main/95 to-background-card py-6 sm:py-10 md:py-14 px-4 sm:px-6 md:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-12 md:mb-16">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary-main mb-3 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-accent-teal to-accent-teal">
+        <div className="text-center mb-6 sm:mb-10 md:mb-14">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary-main mb-2 sm:mb-3 bg-clip-text text-transparent bg-gradient-to-r from-accent-teal to-accent-teal">
             Try Hashly
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-primary-light max-w-2xl mx-auto">
-            Experience the power of AI-generated captions and hashtags
+          <p className="text-xs sm:text-sm md:text-base text-primary-light max-w-2xl mx-auto leading-relaxed">
+            Experience the power of AI-generated captions and hashtags.
           </p>
         </div>
 
         <div className="space-y-4 sm:space-y-6 md:space-y-8">
           {/* Error Alert */}
           {error && (
-            <div className="bg-red-50/50 backdrop-blur-sm border border-red-200 text-red-600 px-4 py-3 sm:px-5 sm:py-4 rounded-xl flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="text-sm sm:text-base">{error}</span>
+            <div className="bg-red-50/50 backdrop-blur-sm border border-red-200 text-red-600 px-3 py-2 sm:px-4 sm:py-3 rounded-xl flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm">{error}</span>
             </div>
           )}
 
           {/* Generation Method Selection */}
-          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-border-light/50">
-            <h2 className="text-base sm:text-lg md:text-xl font-semibold text-primary-main mb-4 sm:mb-6">
+          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50">
+            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-primary-main mb-4">
               Choose Generation Method
             </h2>
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+            <div className="grid grid-cols-3 gap-3">
               {[
                 {
                   id: "mood",
@@ -265,70 +265,72 @@ const TryScreen = () => {
                   label: "Image",
                   description: "Upload image",
                 },
-              ].map(({ id, icon: Icon, label, description }) => (
-              <button
-                key={id}
-                onClick={() => {
-                  resetForm();
-                  setGenerationMethod(id);
-                }}
-                  className={`p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl transition-all duration-300 ${
-                  generationMethod === id
-                      ? "bg-accent-teal text-text-light shadow-lg scale-[1.02] ring-2 ring-accent-teal/20"
-                      : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10 hover:scale-[1.02] hover:ring-1 hover:ring-accent-teal/20"
+              ].map(({ id, icon: Icon, label }) => (
+                <button
+                  key={id}
+                  onClick={() => {
+                    resetForm();
+                    setGenerationMethod(id);
+                  }}
+                  className={`p-3 rounded-lg transition-all duration-300 text-center ${
+                    generationMethod === id
+                      ? "bg-accent-teal text-text-light shadow-md ring-2 ring-accent-teal/20"
+                      : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
                   }`}
                 >
                   <div className="flex flex-col items-center">
-                    <Icon className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 mb-2 sm:mb-3" />
-                    <div className="text-sm sm:text-base md:text-lg font-medium capitalize">
+                    <Icon className="h-5 w-5 sm:h-6 sm:w-6 mb-1" />
+                    <div className="text-xs sm:text-sm md:text-base font-medium capitalize">
                       {label}
                     </div>
                   </div>
-              </button>
-            ))}
-            </div>
-          </div>
-
-          {/* Length Selection */}
-          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-border-light/50">
-            <h2 className="text-base sm:text-lg md:text-xl font-semibold text-primary-main mb-4 sm:mb-6">
-              Caption Length
-            </h2>
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-              {Object.entries(lengthConfigs).map(([key, { label, description }]) => (
-                  <button
-                    key={key}
-                    onClick={() => setCaptionLength(key)}
-                  className={`p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl transition-all duration-300 ${
-                      captionLength === key
-                        ? "bg-accent-teal text-text-light shadow-lg scale-[1.02] ring-2 ring-accent-teal/20"
-                        : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10 hover:scale-[1.02] hover:ring-1 hover:ring-accent-teal/20"
-                    }`}
-                  >
-                  <div className="text-sm sm:text-base md:text-lg font-medium capitalize mb-1 sm:mb-2">
-                      {label}
-                    </div>
-                  <div className="text-xs sm:text-sm md:text-base opacity-80">
-                      {description}
-                    </div>
-                  </button>
+                </button>
               ))}
             </div>
           </div>
 
+          {/* Caption Length Selection */}
+          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50">
+            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-primary-main mb-4">
+              Caption Length
+            </h2>
+            <div className="grid grid-cols-3 gap-3">
+              {Object.entries(lengthConfigs).map(
+                ([key, { label, description }]) => (
+                  <button
+                    key={key}
+                    onClick={() => setCaptionLength(key)}
+                    className={`p-3 rounded-lg transition-all duration-300 text-left ${
+                      captionLength === key
+                        ? "bg-accent-teal text-text-light ring-2 ring-accent-teal/20"
+                        : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
+                    }`}
+                  >
+                    <div className="text-xs sm:text-sm font-medium capitalize mb-1">
+                      {label}
+                    </div>
+                    <div className="text-[10px] sm:text-xs opacity-80">
+                      {description}
+                    </div>
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+
           {/* Content Selection */}
-          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-border-light/50 overflow-visible">
-            <h2 className="text-base sm:text-lg md:text-xl font-semibold text-primary-main mb-4 sm:mb-6">
+          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50">
+            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-primary-main mb-4">
               {generationMethod === "image" ? "Upload Image" : "Select Content"}
             </h2>
             {generationMethod === "image" ? (
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-4">
                 <ImageUpload
                   onImageSelect={setSelectedImage}
                   onPreviewChange={setImagePreview}
                 />
                 {imagePreview && (
-                  <div className="relative w-full aspect-video rounded-lg sm:rounded-xl overflow-hidden ring-1 ring-border-light/50">
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden ring-1 ring-border-light/50">
                     <img
                       src={imagePreview}
                       alt="Preview"
@@ -339,9 +341,9 @@ const TryScreen = () => {
                         setSelectedImage(null);
                         setImagePreview(null);
                       }}
-                      className="absolute top-3 right-3 p-2 bg-background-main/80 backdrop-blur-sm rounded-full text-primary-main hover:bg-background-main transition-colors"
+                      className="absolute top-2 right-2 p-2 bg-background-main/80 backdrop-blur-sm rounded-full text-primary-main hover:bg-background-main"
                     >
-                      <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
                 )}
@@ -351,31 +353,31 @@ const TryScreen = () => {
                 <button
                   ref={dropdownButtonRef}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full p-4 sm:p-5 rounded-lg bg-background-main/50 backdrop-blur-sm text-primary-main flex items-center justify-between hover:bg-accent-teal/10 transition-colors ring-1 ring-border-light/50"
+                  className="w-full p-3 rounded-lg bg-background-main/50 backdrop-blur-sm text-primary-main flex items-center justify-between hover:bg-accent-teal/10 transition-colors ring-1 ring-border-light/50"
                 >
-                  <span className="text-sm sm:text-base md:text-lg font-medium capitalize">
+                  <span className="text-xs sm:text-sm font-medium capitalize">
                     {selectedCategory}
                   </span>
                   <ChevronDown
-                    className={`h-5 w-5 sm:h-6 sm:w-6 transition-transform ${
+                    className={`h-5 w-5 transition-transform ${
                       isDropdownOpen ? "rotate-180" : ""
                     }`}
                   />
                 </button>
-                </div>
-              )}
+              </div>
+            )}
           </div>
 
           {/* Custom Input */}
-          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-border-light/50">
-            <h2 className="text-base sm:text-lg md:text-xl font-semibold text-primary-main mb-4 sm:mb-6">
+          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50">
+            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-primary-main mb-4">
               Additional Elements (Optional)
             </h2>
             <textarea
-                value={customInput}
-                onChange={(e) => setCustomInput(e.target.value)}
+              value={customInput}
+              onChange={(e) => setCustomInput(e.target.value)}
               placeholder="Add specific elements, keywords, or themes you'd like to include..."
-              className="w-full h-24 sm:h-32 md:h-40 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-background-main/50 backdrop-blur-sm border border-border-light/50 text-sm sm:text-base md:text-lg text-primary-main placeholder-primary-light focus:outline-none focus:ring-2 focus:ring-accent-teal/50 transition-all resize-none"
+              className="w-full h-24 sm:h-28 md:h-32 p-3 rounded-lg bg-background-main/50 backdrop-blur-sm border border-border-light/50 text-xs sm:text-sm text-primary-main placeholder-primary-light focus:outline-none focus:ring-2 focus:ring-accent-teal/50 transition-all resize-none"
             />
           </div>
 
@@ -383,64 +385,64 @@ const TryScreen = () => {
           <button
             onClick={generateContent}
             disabled={loading}
-            className={`w-full py-3 sm:py-4 md:py-5 rounded-lg sm:rounded-xl font-medium text-text-light transition-all duration-300 flex items-center justify-center gap-3 ${
+            className={`w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 ${
               loading
                 ? "bg-accent-teal/50 cursor-not-allowed"
-                : "bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:from-accent-teal/90 hover:to-accent-teal hover:scale-[1.02] hover:shadow-lg"
+                : "bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
             }`}
           >
             {loading ? (
               <>
-                <Loader className="h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
-                <span className="text-base sm:text-lg md:text-xl">Generating...</span>
+                <Loader className="h-4 w-4 animate-spin" />
+                <span className="text-sm sm:text-base">Generating...</span>
               </>
             ) : (
               <>
-                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-base sm:text-lg md:text-xl">Generate Content</span>
+                <Sparkles className="h-4 w-4" />
+                <span className="text-sm sm:text-base">Generate Content</span>
               </>
             )}
           </button>
 
           {/* Generated Content */}
-                {caption && (
-            <div className="bg-background-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-border-light/50 space-y-4 sm:space-y-6">
+          {caption && (
+            <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-base sm:text-lg md:text-xl font-semibold text-primary-main">
+                <h2 className="text-sm sm:text-base font-semibold text-primary-main">
                   Generated Content
                 </h2>
-                  <button
-                    onClick={copyToClipboard}
-                  className="p-2 sm:p-3 rounded-lg bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10 transition-colors"
-                  >
-                    {copied ? (
-                    <Check className="h-5 w-5 sm:h-6 sm:w-6" />
-                    ) : (
-                    <Copy className="h-5 w-5 sm:h-6 sm:w-6" />
-                    )}
-                  </button>
+                <button
+                  onClick={copyToClipboard}
+                  className="p-2 rounded-lg bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10 transition-colors"
+                >
+                  {copied ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </button>
               </div>
-              <div className="space-y-4 sm:space-y-6">
-                <div className="p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl bg-background-main/50 backdrop-blur-sm">
-                  <p className="text-sm sm:text-base md:text-lg text-primary-main whitespace-pre-wrap">
-                    {caption}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2 sm:gap-3">
-                  {hashtags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-accent-teal/10 text-primary-main text-sm sm:text-base md:text-lg backdrop-blur-sm"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
+              <div className="p-3 rounded-lg bg-background-main/50 backdrop-blur-sm">
+                <p className="text-xs sm:text-sm md:text-base text-primary-main whitespace-pre-wrap">
+                  {caption}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {hashtags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 rounded-full bg-accent-teal/10 text-primary-main text-xs sm:text-sm backdrop-blur-sm"
+                  >
+                    #{tag}
+                  </span>
+                ))}
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Dropdown Portal */}
       {isDropdownOpen &&
         ReactDOM.createPortal(
           <div
@@ -459,13 +461,15 @@ const TryScreen = () => {
                   setSelectedCategory(category);
                   setIsDropdownOpen(false);
                 }}
-                className={`w-full p-4 text-left hover:bg-accent-teal/10 transition-colors ${
+                className={`w-full p-3 text-left hover:bg-accent-teal/10 transition-colors ${
                   selectedCategory === category
                     ? "bg-accent-teal text-text-light"
                     : "text-primary-main"
                 }`}
               >
-                <div className="text-sm sm:text-base md:text-lg font-medium capitalize">{category}</div>
+                <div className="text-xs sm:text-sm font-medium capitalize">
+                  {category}
+                </div>
               </button>
             ))}
           </div>,
