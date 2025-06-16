@@ -96,8 +96,11 @@ const TryScreen = () => {
 
   const analyzeImage = async (imageFile) => {
     try {
+      console.log("Starting image analysis for file:", imageFile.name);
       const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
       const imageData = await readFileAsDataURL(imageFile);
+      console.log("Image data read successfully");
+      
       const result = await model.generateContent([
         "Analyze this image and describe its key elements, mood, and potential themes for a social media caption. Focus on visual elements, colors, composition, and emotional impact.",
         {
@@ -107,11 +110,18 @@ const TryScreen = () => {
           },
         },
       ]);
+      console.log("Image analysis completed");
       const response = await result.response;
       return response.text();
     } catch (error) {
-      console.error("Error analyzing image:", error);
-      throw new Error("Failed to analyze image");
+      console.error("Detailed error in analyzeImage:", error);
+      if (error.message.includes("API key")) {
+        throw new Error("API configuration error. Please contact support.");
+      } else if (error.message.includes("image")) {
+        throw new Error("Failed to process image. Please try a different image.");
+      } else {
+        throw new Error("Failed to analyze image: " + error.message);
+      }
     }
   };
 
@@ -155,19 +165,29 @@ const TryScreen = () => {
         ${customInput ? `Include these elements: ${customInput}` : ""}
         Also suggest 5-7 relevant hashtags for the ${selectedCategory.toLowerCase()} niche, focusing on industry-specific and trending tags.`;
       } else if (generationMethod === "image") {
-        const imageAnalysis = await analyzeImage(selectedImage);
-        prompt = `Based on this image analysis: "${imageAnalysis}"
-        Generate a ${captionLength} social media caption that is engaging and authentic.
-        The caption should be suitable for Instagram and feel personal and relatable.
-        Make it feel personal and relatable, using natural language and authentic expression.
-        Consider using relevant emojis and line breaks for better readability.
-        ${customInput ? `Include these elements: ${customInput}` : ""}
-        Also suggest 5-7 relevant hashtags for the image, considering the visual elements and potential reach.`;
+        try {
+          console.log("Starting image analysis...");
+          const imageAnalysis = await analyzeImage(selectedImage);
+          console.log("Image analysis completed:", imageAnalysis);
+          
+          prompt = `Based on this image analysis: "${imageAnalysis}"
+          Generate a ${captionLength} social media caption that is engaging and authentic.
+          The caption should be suitable for Instagram and feel personal and relatable.
+          Make it feel personal and relatable, using natural language and authentic expression.
+          Consider using relevant emojis and line breaks for better readability.
+          ${customInput ? `Include these elements: ${customInput}` : ""}
+          Also suggest 5-7 relevant hashtags for the image, considering the visual elements and potential reach.`;
+        } catch (imageError) {
+          console.error("Error during image analysis:", imageError);
+          throw new Error("Failed to analyze image. Please try again with a different image.");
+        }
       }
 
+      console.log("Generating content with prompt:", prompt);
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
+      console.log("Generated content:", text);
 
       // Split the response into caption and hashtags
       const parts = text.split(/(?=#)/);
@@ -178,7 +198,13 @@ const TryScreen = () => {
       setHashtags(tags);
     } catch (error) {
       console.error("Error generating content:", error);
-      setError("Failed to generate content. Please try again.");
+      if (error.message.includes("API key")) {
+        setError("API configuration error. Please contact support.");
+      } else if (error.message.includes("image")) {
+        setError("Failed to process image. Please try a different image.");
+      } else {
+        setError("Failed to generate content. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
