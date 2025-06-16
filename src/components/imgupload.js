@@ -1,16 +1,15 @@
 import { ImageIcon, Upload, X } from "lucide-react";
 import { useState } from "react";
 
-const ImageUpload = ({ onUpload, selectedImage }) => {
+const ImageUpload = ({ onImageSelect, onPreviewChange }) => {
   const [dragActive, setDragActive] = useState(false);
-  const [preview, setPreview] = useState(null);
 
   const handleFile = (file) => {
     if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setPreview(e.target.result);
-        onUpload(file, e.target.result);
+        onPreviewChange(e.target.result);
+        onImageSelect(file);
       };
       reader.readAsDataURL(file);
     }
@@ -31,74 +30,51 @@ const ImageUpload = ({ onUpload, selectedImage }) => {
   };
 
   const handleRemove = () => {
-    setPreview(null);
-    onUpload(null, null);
+    onPreviewChange(null);
+    onImageSelect(null);
   };
 
   return (
     <div>
-      {!preview ? (
-        <div
-          onDragEnter={() => setDragActive(true)}
-          onDragLeave={() => setDragActive(false)}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-          className={`relative border border-dashed rounded-lg p-6 transition-all ${
-            dragActive
-              ? "border-purple-400 bg-purple-50"
-              : "border-gray-200 hover:border-gray-300 bg-white"
-          }`}
-        >
-          <input
-            type="file"
-            onChange={handleChange}
-            accept="image/*"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
-          <div className="flex flex-col items-center gap-2">
-            <div
-              className={`p-2 rounded-full ${
-                dragActive ? "bg-purple-100" : "bg-gray-100"
+      <div
+        onDragEnter={() => setDragActive(true)}
+        onDragLeave={() => setDragActive(false)}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        className={`relative border border-dashed rounded-lg p-6 transition-all ${
+          dragActive
+            ? "border-accent-teal bg-accent-teal/10"
+            : "border-border-light hover:border-accent-teal/50 bg-background-main/50"
+        }`}
+      >
+        <input
+          type="file"
+          onChange={handleChange}
+          accept="image/*"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        />
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className={`p-2 rounded-full ${
+              dragActive ? "bg-accent-teal/20" : "bg-background-main"
+            }`}
+          >
+            <Upload
+              className={`h-5 w-5 ${
+                dragActive ? "text-accent-teal" : "text-primary-main"
               }`}
-            >
-              <Upload
-                className={`h-5 w-5 ${
-                  dragActive ? "text-purple-500" : "text-gray-400"
-                }`}
-              />
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-medium text-gray-700">
-                Drop your image here
-              </p>
-              <p className="text-xs text-gray-400">or click to browse</p>
-            </div>
+            />
+          </div>
+          <div className="text-center">
+            <p className="text-xs font-medium text-primary-main">
+              Drop your image here
+            </p>
+            <p className="text-xs text-primary-light">or click to browse</p>
           </div>
         </div>
-      ) : (
-        <div className="relative rounded-lg overflow-hidden bg-white">
-          <img
-            src={preview}
-            alt="Upload preview"
-            className="w-full h-32 object-cover"
-          />
-          <button
-            onClick={handleRemove}
-            className="absolute top-2 right-2 p-1.5 rounded-md bg-black/50 hover:bg-black/70 text-white transition-all"
-          >
-            <X className="h-3 w-3" />
-          </button>
-          {selectedImage && (
-            <div className="px-3 py-2 border-t border-gray-100">
-              <p className="text-xs text-gray-500">
-                {selectedImage.name} ({Math.round(selectedImage.size / 1024)}{" "}
-                KB)
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      </div>
     </div>
   );
 };
+
 export default ImageUpload;
