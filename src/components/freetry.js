@@ -96,32 +96,66 @@ const TryScreen = () => {
 
   const analyzeImage = async (imageFile) => {
     try {
-      console.log("Starting image analysis for file:", imageFile.name);
+      // Validate file type
+      if (!imageFile.type.startsWith('image/')) {
+        throw new Error('Invalid file type. Please upload an image file.');
+      }
+
+      // Validate file size (max 10MB)
+      if (imageFile.size > 10 * 1024 * 1024) {
+        throw new Error('Image size too large. Please upload an image smaller than 10MB.');
+      }
+
       const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
-      const imageData = await readFileAsDataURL(imageFile);
-      console.log("Image data read successfully");
       
+      // Read and validate image data
+      let imageData;
+      try {
+        imageData = await readFileAsDataURL(imageFile);
+      } catch (readError) {
+        throw new Error('Failed to read image file. Please try a different image.');
+      }
+
+      // Validate base64 data
+      const base64Data = imageData.split(',')[1];
+      if (!base64Data) {
+        throw new Error('Invalid image data. Please try a different image.');
+      }
+
       const result = await model.generateContent([
         "Analyze this image and describe its key elements, mood, and potential themes for a social media caption. Focus on visual elements, colors, composition, and emotional impact.",
         {
           inlineData: {
-            data: imageData.split(",")[1],
+            data: base64Data,
             mimeType: imageFile.type,
           },
         },
       ]);
-      console.log("Image analysis completed");
+
       const response = await result.response;
       return response.text();
     } catch (error) {
-      console.error("Detailed error in analyzeImage:", error);
-      if (error.message.includes("API key")) {
-        throw new Error("API configuration error. Please contact support.");
-      } else if (error.message.includes("image")) {
-        throw new Error("Failed to process image. Please try a different image.");
-      } else {
-        throw new Error("Failed to analyze image: " + error.message);
+      console.error('Image analysis error:', error);
+      
+      // Handle specific API errors
+      if (error.message.includes('API key')) {
+        throw new Error('API configuration error. Please contact support.');
       }
+      
+      // Handle file-related errors
+      if (error.message.includes('file type') || 
+          error.message.includes('size too large') || 
+          error.message.includes('read image file')) {
+        throw error;
+      }
+      
+      // Handle API-specific errors
+      if (error.message.includes('INVALID_ARGUMENT')) {
+        throw new Error('Invalid image format. Please try a different image.');
+      }
+      
+      // Generic error
+      throw new Error('Failed to process image. Please try a different image.');
     }
   };
 
