@@ -1,70 +1,54 @@
-# Getting Started with Create React App
+# HashlyAI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+HashlyAI is an AI-powered web application that helps creators, influencers, and businesses generate engaging social media captions and trending hashtags in seconds. Built with privacy and user-friendliness in mind, HashlyAI streamlines content creation so you can focus on connecting with your audience.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **AI-Powered Captions & Hashtags:** Instantly generate creative captions and relevant hashtags for your posts.
+- **Image-Based Captioning:** Upload a photo and let the AI suggest captions and hashtags that match the image's mood and content.
+- **Customizable Styles:** Choose from different content styles to match your brand or mood.
+- **Fast, Intuitive Interface:** Modern, responsive UI built with React and Tailwind CSS.
+- **Privacy-Focused:** Your data is never sold or misused. See our Privacy Policy for more details.
 
-### `npm start`
+## How It Works
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. **Choose a Generation Method:** Select whether you want to generate content based on mood, niche, or an uploaded image.
+2. **Customize Your Input:** Pick a mood or niche, or upload an image. Optionally, add specific elements or keywords you'd like to include.
+3. **Select Caption Length:** Choose from short, medium, or long captions.
+4. **Generate Content:** Click the button to let the AI create a caption and suggest hashtags. Copy and use them in your posts!
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Tech Stack
 
-### `npm test`
+- **Frontend:** React
+- **Styling:** Tailwind CSS
+- **AI Integration:** Google Generative AI (for caption and hashtag generation)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Getting Started
 
-### `npm run build`
+To run the project locally:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. **Clone the repository:**
+   ```bash
+   git clone <your-repo-url>
+   cd <project-directory>
+   ```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+3. **Start the development server:**
+   ```bash
+   npm start
+   ```
+4. Open [http://localhost:3000](http://localhost:3000) to view the app in your browser.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+> **Note:** This project requires API keys for AI services. For security, do not share or commit any sensitive configuration or keys. Refer to the codebase for integration points.
 
 ## Learn More
+- About: See the About page in the app for more information.
+- Privacy Policy: See the Privacy Policy page in the app.
+- Terms of Service: See the Terms of Service page in the app.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+For questions or feedback, please visit the Contact page in the app. 
