@@ -55,6 +55,7 @@ const TryScreen = () => {
   const [adTimer, setAdTimer] = useState(5); // seconds to "watch" ad
   const adIntervalRef = useRef(null);
   const [showOutOfCreditsModal, setShowOutOfCreditsModal] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Persist credits to localStorage
   useEffect(() => {
@@ -299,11 +300,11 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
   }, [isDropdownOpen]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background-main via-background-main/95 to-background-card py-6 sm:py-10 md:py-14 px-4 sm:px-6 md:px-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-background-main via-background-main/95 to-background-card py-4 sm:py-6 md:py-10 px-2 sm:px-4 md:px-8">
+      <div className="max-w-4xl mx-auto pb-24 sm:pb-0">
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-10 md:mb-14">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary-main mb-2 sm:mb-3 bg-clip-text text-transparent bg-gradient-to-r from-accent-teal to-accent-teal">
+        <div className="text-center mb-4 sm:mb-6 md:mb-10">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-primary-main mb-2 sm:mb-3 bg-clip-text text-transparent bg-gradient-to-r from-accent-teal to-accent-teal">
             Try Hashly
           </h1>
           <p className="text-xs sm:text-sm md:text-base text-primary-light max-w-2xl mx-auto leading-relaxed">
@@ -314,8 +315,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
             Image Credits: {credits}
           </div>
         </div>
-
-        <div className="space-y-4 sm:space-y-6 md:space-y-8">
+        <div className="space-y-3 sm:space-y-4 md:space-y-8">
           {/* Error Alert */}
           {error && (
             <div className="bg-red-50/50 backdrop-blur-sm border border-red-200 text-red-600 px-3 py-2 sm:px-4 sm:py-3 rounded-xl flex items-center gap-2">
@@ -323,7 +323,6 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
               <span className="text-xs sm:text-sm">{error}</span>
             </div>
           )}
-
           {/* Out of Credits Alert */}
           {generationMethod === "image" && credits <= 0 && (
             <div className="bg-red-50/50 backdrop-blur-sm border border-red-200 text-red-600 px-3 py-2 sm:px-4 sm:py-3 rounded-xl flex items-center gap-2 mb-2">
@@ -333,13 +332,12 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
               </span>
             </div>
           )}
-
           {/* Generation Method Selection */}
-          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50">
-            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-primary-main mb-4">
+          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-2 sm:p-4 md:p-6 shadow-sm border border-border-light/50">
+            <h2 className="text-xs sm:text-base md:text-lg font-semibold text-primary-main mb-2 sm:mb-4">
               Choose Generation Method
             </h2>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {[
                 {
                   id: "mood",
@@ -366,7 +364,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
                     resetForm();
                     setGenerationMethod(id);
                   }}
-                  className={`p-3 rounded-lg transition-all duration-300 text-center ${generationMethod === id
+                  className={`p-3 sm:p-4 rounded-lg min-h-[48px] transition-all duration-300 text-center ${generationMethod === id
                     ? "bg-accent-teal text-text-light shadow-md ring-2 ring-accent-teal/20"
                     : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
                     }`}
@@ -381,19 +379,18 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
               ))}
             </div>
           </div>
-
           {/* Caption Length Selection */}
-          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50">
-            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-primary-main mb-4">
+          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-2 sm:p-4 md:p-6 shadow-sm border border-border-light/50">
+            <h2 className="text-xs sm:text-base md:text-lg font-semibold text-primary-main mb-2 sm:mb-4">
               Caption Length
             </h2>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {Object.entries(lengthConfigs).map(
                 ([key, { label, description }]) => (
                   <button
                     key={key}
                     onClick={() => setCaptionLength(key)}
-                    className={`p-3 rounded-lg transition-all duration-300 text-left ${captionLength === key
+                    className={`p-3 sm:p-4 rounded-lg min-h-[48px] transition-all duration-300 text-left ${captionLength === key
                       ? "bg-accent-teal text-text-light ring-2 ring-accent-teal/20"
                       : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
                       }`}
@@ -409,14 +406,13 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
               )}
             </div>
           </div>
-
           {/* Content Selection */}
-          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50">
-            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-primary-main mb-4">
+          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-2 sm:p-4 md:p-6 shadow-sm border border-border-light/50">
+            <h2 className="text-xs sm:text-base md:text-lg font-semibold text-primary-main mb-2 sm:mb-4">
               {generationMethod === "image" ? "Upload Image" : "Select Content"}
             </h2>
             {generationMethod === "image" ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <ImageUpload
                   onImageSelect={setSelectedImage}
                   onPreviewChange={setImagePreview}
@@ -445,7 +441,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
                 <button
                   ref={dropdownButtonRef}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full p-3 rounded-lg bg-background-main/50 backdrop-blur-sm text-primary-main flex items-center justify-between hover:bg-accent-teal/10 transition-colors ring-1 ring-border-light/50"
+                  className="w-full p-3 sm:p-4 rounded-lg min-h-[48px] bg-background-main/50 backdrop-blur-sm text-primary-main flex items-center justify-between hover:bg-accent-teal/10 transition-colors ring-1 ring-border-light/50"
                 >
                   <span className="text-xs sm:text-sm font-medium capitalize">
                     {selectedCategory}
@@ -458,47 +454,33 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
               </div>
             )}
           </div>
-
-          {/* Custom Input */}
-          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50">
-            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-primary-main mb-4">
-              Additional Elements (Optional)
-            </h2>
-            <textarea
-              value={customInput}
-              onChange={(e) => setCustomInput(e.target.value)}
-              placeholder="Add specific elements, keywords, or themes you'd like to include..."
-              className="w-full h-24 sm:h-28 md:h-32 p-3 rounded-lg bg-background-main/50 backdrop-blur-sm border border-border-light/50 text-xs sm:text-sm text-primary-main placeholder-primary-light focus:outline-none focus:ring-2 focus:ring-accent-teal/50 transition-all resize-none"
-            />
-          </div>
-
-          {/* Generate Button */}
-          <button
-            onClick={generateContent}
-            disabled={loading || (generationMethod === "image" && credits <= 0)}
-            className={`w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 ${loading
-              ? "bg-accent-teal/50 cursor-not-allowed"
-              : "bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
-              }`}
-          >
-            {loading ? (
-              <>
-                <Loader className="h-4 w-4 animate-spin" />
-                <span className="text-sm sm:text-base">Generating...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                <span className="text-sm sm:text-base">Generate Content</span>
-              </>
+          {/* Collapsible Advanced Options */}
+          <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-2 sm:p-4 md:p-6 shadow-sm border border-border-light/50">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <h2 className="text-xs sm:text-base md:text-lg font-semibold text-primary-main">
+                Additional Elements (Optional)
+              </h2>
+              <button
+                className="text-accent-teal text-xs sm:text-sm"
+                onClick={() => setShowAdvanced((v) => !v)}
+              >
+                {showAdvanced ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showAdvanced && (
+              <textarea
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                placeholder="Add specific elements, keywords, or themes you'd like to include..."
+                className="w-full h-20 sm:h-24 md:h-32 p-3 rounded-lg bg-background-main/50 backdrop-blur-sm border border-border-light/50 text-xs sm:text-sm text-primary-main placeholder-primary-light focus:outline-none focus:ring-2 focus:ring-accent-teal/50 transition-all resize-none"
+              />
             )}
-          </button>
-
+          </div>
           {/* Generated Content */}
           {caption && (
-            <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-sm border border-border-light/50 space-y-4">
+            <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-2 sm:p-4 md:p-6 shadow-sm border border-border-light/50 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm sm:text-base font-semibold text-primary-main">
+                <h2 className="text-xs sm:text-base font-semibold text-primary-main">
                   Generated Content
                 </h2>
                 <button
@@ -531,7 +513,26 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
           )}
         </div>
       </div>
-
+      {/* Sticky Generate Button for Mobile */}
+      <div className="fixed bottom-0 left-0 w-full z-50 sm:static sm:w-auto bg-background-main/90 sm:bg-transparent px-2 py-2 sm:p-0">
+        <button
+          onClick={generateContent}
+          disabled={loading || (generationMethod === "image" && credits <= 0)}
+          className="w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
+        >
+          {loading ? (
+            <>
+              <Loader className="h-4 w-4 animate-spin" />
+              <span className="text-sm sm:text-base">Generating...</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              <span className="text-sm sm:text-base">Generate Content</span>
+            </>
+          )}
+        </button>
+      </div>
       {/* Dropdown Portal */}
       {isDropdownOpen &&
         ReactDOM.createPortal(
@@ -551,7 +552,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
                   setSelectedCategory(category);
                   setIsDropdownOpen(false);
                 }}
-                className={`w-full p-3 text-left hover:bg-accent-teal/10 transition-colors ${selectedCategory === category
+                className={`w-full p-3 sm:p-4 text-left hover:bg-accent-teal/10 transition-colors ${selectedCategory === category
                   ? "bg-accent-teal text-text-light"
                   : "text-primary-main"
                   }`}
@@ -567,7 +568,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
       {/* Simulated Rewarded Ad Modal */}
       {showAdModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full text-center">
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 max-w-xs w-full mx-2 text-center">
             {adTimer > 0 ? (
               <>
                 <div className="mb-4 text-lg font-semibold text-primary-main">Watch Ad to Earn Credit</div>
