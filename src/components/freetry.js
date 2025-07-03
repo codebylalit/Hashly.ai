@@ -25,6 +25,9 @@ import ImageUpload from "./imgupload";
 // Initialize Google AI
 const genAI = new GoogleGenerativeAI("AIzaSyA4LQ-Ic5Mo35NJ-ECVq3okfbw31uQSrcs");
 
+const INITIAL_CREDITS = 5;
+const CREDITS_KEY = 'hashly_image_credits';
+
 const TryScreen = () => {
   const [generationMethod, setGenerationMethod] = useState("mood");
   const [caption, setCaption] = useState("");
@@ -44,23 +47,46 @@ const TryScreen = () => {
     left: 0,
     width: 0,
   });
+  const [credits, setCredits] = useState(() => {
+    const stored = localStorage.getItem(CREDITS_KEY);
+    return stored !== null ? parseInt(stored, 10) : INITIAL_CREDITS;
+  });
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [adTimer, setAdTimer] = useState(5); // seconds to "watch" ad
+  const adIntervalRef = useRef(null);
+  const [showOutOfCreditsModal, setShowOutOfCreditsModal] = useState(false);
+
+  // Persist credits to localStorage
+  useEffect(() => {
+    localStorage.setItem(CREDITS_KEY, credits);
+  }, [credits]);
+
+  // Ad timer effect
+  useEffect(() => {
+    if (showAdModal && adTimer > 0) {
+      adIntervalRef.current = setTimeout(() => setAdTimer(adTimer - 1), 1000);
+    } else if (adTimer === 0) {
+      clearTimeout(adIntervalRef.current);
+    }
+    return () => clearTimeout(adIntervalRef.current);
+  }, [showAdModal, adTimer]);
 
   const lengthConfigs = {
     short: {
       description: "1-2 sentences",
-      wordCount: "10-15",
+      wordCount: "8-15",
       charLimit: 80,
       prompt: "Create a very brief and concise caption",
     },
     medium: {
       description: "2-3 sentences",
-      wordCount: "20-35",
+      wordCount: "15-25",
       charLimit: 150,
       prompt: "Create a balanced, medium-length caption",
     },
     long: {
       description: "3-4 sentences",
-      wordCount: "30-60",
+      wordCount: "25-35",
       charLimit: 280,
       prompt: "Create a detailed, engaging caption",
     },
@@ -95,35 +121,32 @@ const TryScreen = () => {
   ];
 
   const analyzeImage = async (imageFile) => {
+    // Validate file type and size
+    if (!imageFile.type.startsWith('image/')) {
+      throw new Error('Invalid file type. Please upload an image file.');
+    }
+    if (imageFile.size > 10 * 1024 * 1024) {
+      throw new Error('Image size too large. Please upload an image smaller than 10MB.');
+    }
+
+    // Read image as base64
+    let imageData;
     try {
-      // Validate file type
-      if (!imageFile.type.startsWith('image/')) {
-        throw new Error('Invalid file type. Please upload an image file.');
-      }
+      imageData = await readFileAsDataURL(imageFile);
+    } catch (readError) {
+      console.error('File read error:', readError);
+      throw new Error('Failed to read image file. Please try a different image.');
+    }
+    const base64Data = imageData.split(',')[1];
+    if (!base64Data) {
+      throw new Error('Invalid image data. Please try a different image.');
+    }
 
-      // Validate file size (max 10MB)
-      if (imageFile.size > 10 * 1024 * 1024) {
-        throw new Error('Image size too large. Please upload an image smaller than 10MB.');
-      }
-
-      const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
-      
-      // Read and validate image data
-      let imageData;
-      try {
-        imageData = await readFileAsDataURL(imageFile);
-      } catch (readError) {
-        throw new Error('Failed to read image file. Please try a different image.');
-      }
-
-      // Validate base64 data
-      const base64Data = imageData.split(',')[1];
-      if (!base64Data) {
-        throw new Error('Invalid image data. Please try a different image.');
-      }
-
+    // Analyze image with Gemini Vision
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent([
-        "Analyze this image and describe its key elements, mood, and potential themes for a social media caption. Focus on visual elements, colors, composition, and emotional impact.",
+        "Describe this image in detail, focusing on its key elements, mood, and themes for a social media caption.",
         {
           inlineData: {
             data: base64Data,
@@ -131,31 +154,24 @@ const TryScreen = () => {
           },
         },
       ]);
-
       const response = await result.response;
       return response.text();
     } catch (error) {
+      // Log the full error object for debugging
       console.error('Image analysis error:', error);
-      
-      // Handle specific API errors
-      if (error.message.includes('API key')) {
+      if (error.message && error.message.includes('API key')) {
         throw new Error('API configuration error. Please contact support.');
       }
-      
-      // Handle file-related errors
-      if (error.message.includes('file type') || 
-          error.message.includes('size too large') || 
-          error.message.includes('read image file')) {
+      if (error.message && (error.message.includes('file type') ||
+        error.message.includes('size too large') ||
+        error.message.includes('read image file'))) {
         throw error;
       }
-      
-      // Handle API-specific errors
-      if (error.message.includes('INVALID_ARGUMENT')) {
+      if (error.message && error.message.includes('INVALID_ARGUMENT')) {
         throw new Error('Invalid image format. Please try a different image.');
       }
-      
-      // Generic error
-      throw new Error('Failed to process image. Please try a different image.');
+      // Show the actual error message for debugging
+      throw new Error('Failed to process image: ' + (error.message || error.toString()));
     }
   };
 
@@ -168,6 +184,16 @@ const TryScreen = () => {
     });
   };
 
+  const handleWatchAd = () => {
+    setShowAdModal(true);
+    setAdTimer(5);
+  };
+
+  const handleAdFinished = () => {
+    setShowAdModal(false);
+    setCredits((c) => c + 1);
+  };
+
   const generateContent = async () => {
     setError("");
     if (
@@ -178,67 +204,61 @@ const TryScreen = () => {
       setError("Please fill in all required fields!");
       return;
     }
+    if (generationMethod === "image") {
+      if (credits <= 0) {
+        setShowOutOfCreditsModal(true); // Show popup
+        return;
+      }
+      // Deduct credit immediately
+      setCredits((c) => Math.max(0, c - 1));
+    }
     setLoading(true);
 
     try {
       let prompt = "";
-      let model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+      let model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      if (generationMethod === "mood") {
-        prompt = `Generate a ${captionLength} social media caption that expresses a ${selectedCategory.toLowerCase()} mood. 
-        The caption should be engaging, authentic, and suitable for Instagram.
-        Make it feel personal and relatable, using natural language and authentic expression.
-        Consider using relevant emojis and line breaks for better readability.
-        ${customInput ? `Include these elements: ${customInput}` : ""}
-        Also suggest 5-7 relevant hashtags for this mood, considering current trends and engagement potential.`;
+      if (generationMethod === "image") {
+        // 1. Analyze the image
+        const imageAnalysis = await analyzeImage(selectedImage);
+        // 2. Use the analysis to generate a caption
+        prompt = `\nBased on this image description: "${imageAnalysis}"
+Write a ${captionLength} Instagram caption that is engaging, authentic, and relevant to the image.\nUse natural language, include relevant emojis and line breaks for readability.\n${customInput ? `Include these elements: ${customInput}` : ""}\nAlso suggest 5-7 relevant hashtags for the image.\nFormat output as:\nCaption: <your caption>\nHashtags: #tag1 #tag2 #tag3 #tag4 #tag5\n`;
+      } else if (generationMethod === "mood") {
+        prompt = `Generate a ${captionLength} social media caption that expresses a ${selectedCategory.toLowerCase()} mood. \nThe caption should be engaging, authentic, and suitable for Instagram.\nMake it feel personal and relatable, using natural language and authentic expression.\nConsider using relevant emojis and line breaks for better readability.\n${customInput ? `Include these elements: ${customInput}` : ""}\nAlso suggest 5-7 relevant hashtags for this mood, considering current trends and engagement potential.`;
       } else if (generationMethod === "niche") {
-        prompt = `Generate a ${captionLength} social media caption for the ${selectedCategory.toLowerCase()} niche. 
-        The caption should be professional, engaging, and suitable for Instagram.
-        Make it relevant to the ${selectedCategory.toLowerCase()} industry and audience, using appropriate terminology and references.
-        Consider using relevant emojis and line breaks for better readability.
-        ${customInput ? `Include these elements: ${customInput}` : ""}
-        Also suggest 5-7 relevant hashtags for the ${selectedCategory.toLowerCase()} niche, focusing on industry-specific and trending tags.`;
-      } else if (generationMethod === "image") {
-        try {
-          console.log("Starting image analysis...");
-          const imageAnalysis = await analyzeImage(selectedImage);
-          console.log("Image analysis completed:", imageAnalysis);
-          
-          prompt = `Based on this image analysis: "${imageAnalysis}"
-          Generate a ${captionLength} social media caption that is engaging and authentic.
-          The caption should be suitable for Instagram and feel personal and relatable.
-          Make it feel personal and relatable, using natural language and authentic expression.
-          Consider using relevant emojis and line breaks for better readability.
-          ${customInput ? `Include these elements: ${customInput}` : ""}
-          Also suggest 5-7 relevant hashtags for the image, considering the visual elements and potential reach.`;
-        } catch (imageError) {
-          console.error("Error during image analysis:", imageError);
-          throw new Error("Failed to analyze image. Please try again with a different image.");
-        }
+        prompt = `Generate a ${captionLength} social media caption for the ${selectedCategory.toLowerCase()} niche. \nThe caption should be professional, engaging, and suitable for Instagram.\nMake it relevant to the ${selectedCategory.toLowerCase()} industry and audience, using appropriate terminology and references.\nConsider using relevant emojis and line breaks for better readability.\n${customInput ? `Include these elements: ${customInput}` : ""}\nAlso suggest 5-7 relevant hashtags for the ${selectedCategory.toLowerCase()} niche, focusing on industry-specific and trending tags.`;
       }
 
-      console.log("Generating content with prompt:", prompt);
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
-      console.log("Generated content:", text);
 
-      // Split the response into caption and hashtags
-      const parts = text.split(/(?=#)/);
-      const caption = parts[0].trim();
-      const tags = parts.slice(1).map((tag) => tag.replace("#", "").trim());
-
-      setCaption(caption);
-      setHashtags(tags);
-    } catch (error) {
-      console.error("Error generating content:", error);
-      if (error.message.includes("API key")) {
-        setError("API configuration error. Please contact support.");
-      } else if (error.message.includes("image")) {
-        setError("Failed to process image. Please try a different image.");
-      } else {
-        setError("Failed to generate content. Please try again.");
+      // Parse the output for caption and hashtags
+      let captionParsed = text.trim();
+      let hashtagsParsed = [];
+      const captionMatch = text.match(/Caption:\s*([\s\S]*?)\nHashtags:/i);
+      const hashtagsMatch = text.match(/Hashtags:\s*([#\w\s]+)/i);
+      if (captionMatch) {
+        captionParsed = captionMatch[1].trim();
       }
+      if (hashtagsMatch) {
+        hashtagsParsed = hashtagsMatch[1]
+          .split("#")
+          .map((tag) => tag.trim())
+          .filter(Boolean);
+      } else {
+        // fallback: try to extract hashtags from the text
+        const fallbackTags = text.match(/#\w+/g);
+        if (fallbackTags) {
+          hashtagsParsed = fallbackTags.map((tag) => tag.replace("#", ""));
+        }
+      }
+
+      setCaption(captionParsed);
+      setHashtags(hashtagsParsed);
+    } catch (error) {
+      setError(error.message || "Failed to generate content. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -289,6 +309,10 @@ const TryScreen = () => {
           <p className="text-xs sm:text-sm md:text-base text-primary-light max-w-2xl mx-auto leading-relaxed">
             Experience the power of AI-generated captions and hashtags.
           </p>
+          {/* Show credits for image-based generation */}
+          <div className="mt-2 text-xs sm:text-sm text-primary-main font-semibold">
+            Image Credits: {credits}
+          </div>
         </div>
 
         <div className="space-y-4 sm:space-y-6 md:space-y-8">
@@ -297,6 +321,16 @@ const TryScreen = () => {
             <div className="bg-red-50/50 backdrop-blur-sm border border-red-200 text-red-600 px-3 py-2 sm:px-4 sm:py-3 rounded-xl flex items-center gap-2">
               <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="text-xs sm:text-sm">{error}</span>
+            </div>
+          )}
+
+          {/* Out of Credits Alert */}
+          {generationMethod === "image" && credits <= 0 && (
+            <div className="bg-red-50/50 backdrop-blur-sm border border-red-200 text-red-600 px-3 py-2 sm:px-4 sm:py-3 rounded-xl flex items-center gap-2 mb-2">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm">
+                You are out of image credits. Watch an ad to earn more credits.
+              </span>
             </div>
           )}
 
@@ -332,11 +366,10 @@ const TryScreen = () => {
                     resetForm();
                     setGenerationMethod(id);
                   }}
-                  className={`p-3 rounded-lg transition-all duration-300 text-center ${
-                    generationMethod === id
-                      ? "bg-accent-teal text-text-light shadow-md ring-2 ring-accent-teal/20"
-                      : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
-                  }`}
+                  className={`p-3 rounded-lg transition-all duration-300 text-center ${generationMethod === id
+                    ? "bg-accent-teal text-text-light shadow-md ring-2 ring-accent-teal/20"
+                    : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
+                    }`}
                 >
                   <div className="flex flex-col items-center">
                     <Icon className="h-5 w-5 sm:h-6 sm:w-6 mb-1" />
@@ -360,11 +393,10 @@ const TryScreen = () => {
                   <button
                     key={key}
                     onClick={() => setCaptionLength(key)}
-                    className={`p-3 rounded-lg transition-all duration-300 text-left ${
-                      captionLength === key
-                        ? "bg-accent-teal text-text-light ring-2 ring-accent-teal/20"
-                        : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
-                    }`}
+                    className={`p-3 rounded-lg transition-all duration-300 text-left ${captionLength === key
+                      ? "bg-accent-teal text-text-light ring-2 ring-accent-teal/20"
+                      : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
+                      }`}
                   >
                     <div className="text-xs sm:text-sm font-medium capitalize mb-1">
                       {label}
@@ -419,9 +451,8 @@ const TryScreen = () => {
                     {selectedCategory}
                   </span>
                   <ChevronDown
-                    className={`h-5 w-5 transition-transform ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
+                    className={`h-5 w-5 transition-transform ${isDropdownOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
               </div>
@@ -444,12 +475,11 @@ const TryScreen = () => {
           {/* Generate Button */}
           <button
             onClick={generateContent}
-            disabled={loading}
-            className={`w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 ${
-              loading
-                ? "bg-accent-teal/50 cursor-not-allowed"
-                : "bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
-            }`}
+            disabled={loading || (generationMethod === "image" && credits <= 0)}
+            className={`w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 ${loading
+              ? "bg-accent-teal/50 cursor-not-allowed"
+              : "bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
+              }`}
           >
             {loading ? (
               <>
@@ -521,11 +551,10 @@ const TryScreen = () => {
                   setSelectedCategory(category);
                   setIsDropdownOpen(false);
                 }}
-                className={`w-full p-3 text-left hover:bg-accent-teal/10 transition-colors ${
-                  selectedCategory === category
-                    ? "bg-accent-teal text-text-light"
-                    : "text-primary-main"
-                }`}
+                className={`w-full p-3 text-left hover:bg-accent-teal/10 transition-colors ${selectedCategory === category
+                  ? "bg-accent-teal text-text-light"
+                  : "text-primary-main"
+                  }`}
               >
                 <div className="text-xs sm:text-sm font-medium capitalize">
                   {category}
@@ -535,6 +564,62 @@ const TryScreen = () => {
           </div>,
           document.body
         )}
+      {/* Simulated Rewarded Ad Modal */}
+      {showAdModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full text-center">
+            {adTimer > 0 ? (
+              <>
+                <div className="mb-4 text-lg font-semibold text-primary-main">Watch Ad to Earn Credit</div>
+                <div className="mb-2 text-primary-main">Ad playing... ({adTimer}s)</div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-4">
+                  <div className="h-2 bg-accent-teal" style={{ width: `${((5 - adTimer) / 5) * 100}%` }}></div>
+                </div>
+                <div className="text-xs text-primary-light">Please wait for the ad to finish.</div>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 text-lg font-semibold text-primary-main">Ad Finished!</div>
+                <button
+                  className="w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-2"
+                  onClick={handleAdFinished}
+                >
+                  Claim 1 Credit
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      {showOutOfCreditsModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full text-center">
+            <div className="mb-4 text-lg font-semibold text-red-600 flex items-center justify-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Out of Image Credits
+            </div>
+            <div className="mb-4 text-primary-main">
+              You are out of image credits.<br />
+              Watch an ad to earn more credits.
+            </div>
+            <button
+              className="w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-2"
+              onClick={() => {
+                setShowOutOfCreditsModal(false);
+                setShowAdModal(true); // Open the ad modal
+              }}
+            >
+              Watch Ad
+            </button>
+            <button
+              className="w-full py-2 rounded-lg bg-gray-200 text-primary-main font-medium mt-2"
+              onClick={() => setShowOutOfCreditsModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
