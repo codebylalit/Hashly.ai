@@ -54,95 +54,10 @@ const TryScreen = () => {
   const [showOutOfCreditsModal, setShowOutOfCreditsModal] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // --- Rewarded Ad React Integration ---
-  const REWARDED_AD_UNIT = '/23309063180/reward';
-  const REWARDED_AD_FREQ_KEY = 'hasShownRewardedAd';
-  const REWARDED_AD_FREQ_MS = 10 * 60 * 1000; // 10 minutes
-
-  const [showRewardedModal, setShowRewardedModal] = useState(false);
-  const [rewardedCloseVisible, setRewardedCloseVisible] = useState(false);
-  const rewardedAdSlotRef = useRef(null);
-  const rewardedAdRef = useRef(null);
-  const [rewardedLoading, setRewardedLoading] = useState(false);
-
-  const canShowRewardedAd = useCallback(() => {
-    const lastShown = localStorage.getItem(REWARDED_AD_FREQ_KEY);
-    const now = Date.now();
-    return !lastShown || now - parseInt(lastShown, 10) > REWARDED_AD_FREQ_MS;
-  }, []);
-
-  const handleShowRewardedAd = useCallback(() => {
-    if (!canShowRewardedAd()) {
-      setError('You can only watch a rewarded ad every 10 minutes.');
-      return;
-    }
-    setShowRewardedModal(true);
-    setRewardedCloseVisible(false);
-    setRewardedLoading(true);
-  }, [canShowRewardedAd]);
-
   // Persist credits to localStorage
   useEffect(() => {
     localStorage.setItem(CREDITS_KEY, credits);
   }, [credits]);
-
-  // Inject GPT script and set up rewarded ad slot
-  useEffect(() => {
-    if (!showRewardedModal) return;
-    function setupRewardedAd() {
-      window.googletag = window.googletag || { cmd: [] };
-      window.googletag.cmd.push(function () {
-        // Remove previous slot if exists
-        if (rewardedAdSlotRef.current) {
-          window.googletag.destroySlots([rewardedAdSlotRef.current]);
-          rewardedAdSlotRef.current = null;
-        }
-        // Define rewarded slot
-        const slot = window.googletag
-          .defineOutOfPageSlot(REWARDED_AD_UNIT, window.googletag.enums.OutOfPageFormat.REWARDED)
-          .addService(window.googletag.pubads());
-        slot.setForceSafeFrame(true);
-        window.googletag.pubads().enableAsyncRendering();
-        window.googletag.enableServices();
-        rewardedAdSlotRef.current = slot;
-
-        // Event listeners
-        window.googletag.pubads().addEventListener('impressionViewable', function () {
-          setTimeout(() => setRewardedCloseVisible(true), 30000); // 30s delay
-        });
-        window.googletag.pubads().addEventListener('slotRenderEnded', function (event) {
-          if (event.isEmpty) {
-            setShowRewardedModal(false);
-            setError('Ad failed to load. Please try again later.');
-          }
-        });
-        window.googletag.pubads().addEventListener('rewardedSlotReady', function (event) {
-          setRewardedLoading(false);
-          setRewardedCloseVisible(false);
-          event.makeRewardedVisible();
-        });
-        window.googletag.pubads().addEventListener('rewardedSlotClosed', function (event) {
-          setShowRewardedModal(false);
-          setRewardedCloseVisible(false);
-          localStorage.setItem(REWARDED_AD_FREQ_KEY, Date.now().toString());
-          setCredits((c) => c + 1);
-        });
-        // Display ad
-        window.googletag.display(slot);
-      });
-    }
-    if (!window.googletag) {
-      const gptScript = document.createElement('script');
-      gptScript.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js';
-      gptScript.async = true;
-      gptScript.crossOrigin = 'anonymous';
-      document.head.appendChild(gptScript);
-      gptScript.onload = () => setupRewardedAd();
-    } else {
-      setupRewardedAd();
-    }
-    // eslint-disable-next-line
-  }, [showRewardedModal]);
 
   const lengthConfigs = {
     short: {
@@ -386,15 +301,6 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
               <span className="text-xs sm:text-sm">{error}</span>
             </div>
           )}
-          {/* Out of Credits Alert */}
-          {generationMethod === "image" && credits <= 0 && (
-            <div className="bg-red-50/50 backdrop-blur-sm border border-red-200 text-red-600 px-3 py-2 sm:px-4 sm:py-3 rounded-xl flex items-center gap-2 mb-2">
-              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="text-xs sm:text-sm">
-                You are out of image credits. Watch an ad to earn more credits.
-              </span>
-            </div>
-          )}
           {/* Generation Method Selection */}
           <div className="bg-background-card/80 backdrop-blur-sm rounded-xl p-2 sm:p-4 md:p-6 shadow-sm border border-border-light/50">
             <h2 className="text-xs sm:text-base md:text-lg font-semibold text-primary-main mb-2 sm:mb-4">
@@ -578,34 +484,23 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
       </div>
       {/* Sticky Generate Button for Mobile */}
       <div className="fixed bottom-0 left-0 w-full z-50 sm:static sm:w-auto bg-background-main/90 sm:bg-transparent px-2 py-2 sm:p-0">
-        {(generationMethod === "image" && credits <= 0) ? (
-          <button
-            onClick={handleShowRewardedAd}
-            className="w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
-            disabled={rewardedLoading}
-          >
-            <Sparkles className="h-4 w-4" />
-            <span className="text-sm sm:text-base">Watch Ad to Earn 1 Credit</span>
-          </button>
-        ) : (
-          <button
-            onClick={generateContent}
-            disabled={loading || (generationMethod === "image" && credits <= 0)}
-            className="w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
-          >
-            {loading ? (
-              <>
-                <Loader className="h-4 w-4 animate-spin" />
-                <span className="text-sm sm:text-base">Generating...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                <span className="text-sm sm:text-base">Generate Content</span>
-              </>
-            )}
-          </button>
-        )}
+        <button
+          onClick={generateContent}
+          disabled={loading}
+          className="w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
+        >
+          {loading ? (
+            <>
+              <Loader className="h-4 w-4 animate-spin" />
+              <span className="text-sm sm:text-base">Generating...</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              <span className="text-sm sm:text-base">Generate Content</span>
+            </>
+          )}
+        </button>
       </div>
       {/* Dropdown Portal */}
       {isDropdownOpen &&
@@ -639,24 +534,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
           </div>,
           document.body
         )}
-      {/* Replace Simulated Rewarded Ad Modal with real ad modal */}
-      {showRewardedModal && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full text-center modal">
-            <div className="mb-4 text-lg font-semibold text-primary-main">Watch the ad to continue.</div>
-            <div className="mb-4 text-primary-main">You can close this window after 30 seconds.</div>
-            <button
-              className="btn w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-2"
-              style={{ display: rewardedCloseVisible ? 'block' : 'none' }}
-              onClick={() => setShowRewardedModal(false)}
-              disabled={!rewardedCloseVisible}
-            >
-              Close Ad
-            </button>
-            {rewardedLoading && <div className="mt-4 text-primary-light">Loading ad...</div>}
-          </div>
-        </div>
-      )}
+      {/* Out of Credits Modal: Show Download App Prompt */}
       {showOutOfCreditsModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full text-center">
@@ -666,17 +544,16 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
             </div>
             <div className="mb-4 text-primary-main">
               You are out of image credits.<br />
-              Watch an ad to earn more credits.
+              Download our app for unlimited access!
             </div>
-            <button
-              className="w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-2"
-              onClick={() => {
-                setShowOutOfCreditsModal(false);
-                handleShowRewardedAd(); // Use the new rewarded ad handler
-              }}
+            <a
+              className="w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-2 block"
+              href="https://play.google.com/store/apps/details?id=com.caps.ai"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              Watch Ad
-            </button>
+              Download App
+            </a>
             <button
               className="w-full py-2 rounded-lg bg-gray-200 text-primary-main font-medium mt-2"
               onClick={() => setShowOutOfCreditsModal(false)}
