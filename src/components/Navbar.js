@@ -17,18 +17,25 @@ const navLinks = [
 const Navbar = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      const currentScrollY = window.scrollY;
+      if (currentScrollY < lastScrollY || currentScrollY < 100) {
+        setIsNavbarVisible(true);
+      } else {
+        setIsNavbarVisible(false);
+      }
+      setLastScrollY(currentScrollY);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   return (
-    <nav className={`w-full bg-background-main border-b border-border-light shadow-sm sticky top-0 z-50 transition-all duration-300 ${scrolled ? "opacity-90 translate-y-0" : "opacity-100"} fade-navbar`}>
+    <nav className={`w-full bg-background-main border-b border-border-light shadow-sm sticky top-0 z-50 backdrop-blur-sm transition-all duration-300 ${isNavbarVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`} style={{ willChange: 'transform' }}>
       <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link
           to="/"

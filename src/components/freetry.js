@@ -277,11 +277,11 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
   }, [isDropdownOpen]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background-main via-background-main/95 to-background-card py-4 sm:py-6 md:py-10 px-2 sm:px-4 md:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-background-main via-background-main/95 to-background-card py-2 sm:py-4 md:py-10 px-2 sm:px-4 md:px-8">
       {/* Removed Test Watch Ad Button */}
       <div className="max-w-4xl mx-auto pb-24 sm:pb-0">
         {/* Header */}
-        <div className="text-center mb-4 sm:mb-6 md:mb-10">
+        <div className="text-center mb-4 sm:mb-4 md:mb-8">
           <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-primary-main mb-2 sm:mb-3 bg-clip-text text-transparent bg-gradient-to-r from-accent-teal to-accent-teal">
             Try Hashly
           </h1>
@@ -333,13 +333,13 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
                     resetForm();
                     setGenerationMethod(id);
                   }}
-                  className={`p-3 sm:p-4 rounded-lg min-h-[48px] transition-all duration-300 text-center ${generationMethod === id
+                  className={`p-1 sm:p-2 rounded-lg min-h-[48px] transition-all duration-300 text-center ${generationMethod === id
                     ? "bg-accent-teal text-text-light shadow-md ring-2 ring-accent-teal/20"
                     : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
                     }`}
                 >
                   <div className="flex flex-col items-center">
-                    <Icon className="h-5 w-5 sm:h-6 sm:w-6 mb-1" />
+                    <Icon className="h-3 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mb-1" />
                     <div className="text-xs sm:text-sm md:text-base font-medium capitalize">
                       {label}
                     </div>
@@ -359,7 +359,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
                   <button
                     key={key}
                     onClick={() => setCaptionLength(key)}
-                    className={`p-3 sm:p-4 rounded-lg min-h-[48px] transition-all duration-300 text-left ${captionLength === key
+                    className={`p-1 sm:p-4 rounded-lg min-h-[48px] transition-all duration-300 text-center ${captionLength === key
                       ? "bg-accent-teal text-text-light ring-2 ring-accent-teal/20"
                       : "bg-background-main/50 backdrop-blur-sm text-primary-main hover:bg-accent-teal/10"
                       }`}
@@ -410,7 +410,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
                 <button
                   ref={dropdownButtonRef}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full p-3 sm:p-4 rounded-lg min-h-[48px] bg-background-main/50 backdrop-blur-sm text-primary-main flex items-center justify-between hover:bg-accent-teal/10 transition-colors ring-1 ring-border-light/50"
+                  className="w-full p-1 sm:p-2 rounded-lg min-h-[38px] bg-background-main/50 backdrop-blur-sm text-primary-main flex items-center justify-between hover:bg-accent-teal/10 transition-colors ring-1 ring-border-light/50"
                 >
                   <span className="text-xs sm:text-sm font-medium capitalize">
                     {selectedCategory}
