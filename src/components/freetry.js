@@ -52,8 +52,6 @@ const TryScreen = () => {
     return stored !== null ? parseInt(stored, 10) : INITIAL_CREDITS;
   });
   const [showAdModal, setShowAdModal] = useState(false);
-  const [adTimer, setAdTimer] = useState(5); // seconds to "watch" ad
-  const adIntervalRef = useRef(null);
   const [showOutOfCreditsModal, setShowOutOfCreditsModal] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -62,15 +60,39 @@ const TryScreen = () => {
     localStorage.setItem(CREDITS_KEY, credits);
   }, [credits]);
 
-  // Ad timer effect
+  // --- GPT Ad Integration ---
+  const GPT_AD_UNIT_ID = 'div-gpt-ad-1751597023541-0';
+  const GPT_AD_SLOT = '/23309063180/reward';
+
+  // Inject GPT script only once
   useEffect(() => {
-    if (showAdModal && adTimer > 0) {
-      adIntervalRef.current = setTimeout(() => setAdTimer(adTimer - 1), 1000);
-    } else if (adTimer === 0) {
-      clearTimeout(adIntervalRef.current);
+    if (!window.googletag) {
+      const gptScript = document.createElement('script');
+      gptScript.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js';
+      gptScript.async = true;
+      gptScript.crossOrigin = 'anonymous';
+      document.head.appendChild(gptScript);
+      gptScript.onload = () => {
+        window.googletag = window.googletag || { cmd: [] };
+        window.googletag.cmd.push(function () {
+          window.googletag
+            .defineSlot(GPT_AD_SLOT, [[1024, 768], [768, 1024]], GPT_AD_UNIT_ID)
+            .addService(window.googletag.pubads());
+          window.googletag.pubads().enableSingleRequest();
+          window.googletag.enableServices();
+        });
+      };
     }
-    return () => clearTimeout(adIntervalRef.current);
-  }, [showAdModal, adTimer]);
+  }, []);
+
+  // Show ad when modal opens
+  useEffect(() => {
+    if (showAdModal && window.googletag && window.googletag.cmd) {
+      window.googletag.cmd.push(function () {
+        window.googletag.display(GPT_AD_UNIT_ID);
+      });
+    }
+  }, [showAdModal]);
 
   const lengthConfigs = {
     short: {
@@ -187,7 +209,6 @@ const TryScreen = () => {
 
   const handleWatchAd = () => {
     setShowAdModal(true);
-    setAdTimer(5);
   };
 
   const handleAdFinished = () => {
@@ -301,6 +322,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background-main via-background-main/95 to-background-card py-4 sm:py-6 md:py-10 px-2 sm:px-4 md:px-8">
+      {/* Removed Test Watch Ad Button */}
       <div className="max-w-4xl mx-auto pb-24 sm:pb-0">
         {/* Header */}
         <div className="text-center mb-4 sm:mb-6 md:mb-10">
@@ -515,23 +537,33 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
       </div>
       {/* Sticky Generate Button for Mobile */}
       <div className="fixed bottom-0 left-0 w-full z-50 sm:static sm:w-auto bg-background-main/90 sm:bg-transparent px-2 py-2 sm:p-0">
-        <button
-          onClick={generateContent}
-          disabled={loading || (generationMethod === "image" && credits <= 0)}
-          className="w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
-        >
-          {loading ? (
-            <>
-              <Loader className="h-4 w-4 animate-spin" />
-              <span className="text-sm sm:text-base">Generating...</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm sm:text-base">Generate Content</span>
-            </>
-          )}
-        </button>
+        {(generationMethod === "image" && credits <= 0) ? (
+          <button
+            onClick={() => setShowAdModal(true)}
+            className="w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span className="text-sm sm:text-base">Watch Ad to Earn 1 Credit</span>
+          </button>
+        ) : (
+          <button
+            onClick={generateContent}
+            disabled={loading || (generationMethod === "image" && credits <= 0)}
+            className="w-full py-3 rounded-lg font-medium text-text-light transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-accent-teal to-accent-teal/90 hover:scale-[1.01] hover:shadow-md"
+          >
+            {loading ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin" />
+                <span className="text-sm sm:text-base">Generating...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                <span className="text-sm sm:text-base">Generate Content</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
       {/* Dropdown Portal */}
       {isDropdownOpen &&
@@ -565,30 +597,24 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
           </div>,
           document.body
         )}
-      {/* Simulated Rewarded Ad Modal */}
+      {/* Replace Simulated Rewarded Ad Modal with real ad modal */}
       {showAdModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 max-w-xs w-full mx-2 text-center">
-            {adTimer > 0 ? (
-              <>
-                <div className="mb-4 text-lg font-semibold text-primary-main">Watch Ad to Earn Credit</div>
-                <div className="mb-2 text-primary-main">Ad playing... ({adTimer}s)</div>
-                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-4">
-                  <div className="h-2 bg-accent-teal" style={{ width: `${((5 - adTimer) / 5) * 100}%` }}></div>
-                </div>
-                <div className="text-xs text-primary-light">Please wait for the ad to finish.</div>
-              </>
-            ) : (
-              <>
-                <div className="mb-4 text-lg font-semibold text-primary-main">Ad Finished!</div>
-                <button
-                  className="w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-2"
-                  onClick={handleAdFinished}
-                >
-                  Claim 1 Credit
-                </button>
-              </>
-            )}
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 max-w-xl w-full mx-2 text-center">
+            <div className="mb-4 text-lg font-semibold text-primary-main">Watch Ad to Earn Credit</div>
+            <div className="mb-2 text-primary-main">Please watch the ad below. When finished, close this window to claim your credit.</div>
+            <div className="flex justify-center items-center w-full min-h-[300px]">
+              <div id={GPT_AD_UNIT_ID} style={{ minWidth: 768, minHeight: 768, margin: '0 auto' }}></div>
+            </div>
+            <button
+              className="w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-4"
+              onClick={() => {
+                setShowAdModal(false);
+                setCredits((c) => c + 1);
+              }}
+            >
+              Close & Claim 1 Credit
+            </button>
           </div>
         </div>
       )}
