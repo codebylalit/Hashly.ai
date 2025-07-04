@@ -51,7 +51,6 @@ const TryScreen = () => {
     const stored = localStorage.getItem(CREDITS_KEY);
     return stored !== null ? parseInt(stored, 10) : INITIAL_CREDITS;
   });
-  const [showAdModal, setShowAdModal] = useState(false);
   const [showOutOfCreditsModal, setShowOutOfCreditsModal] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -144,15 +143,6 @@ const TryScreen = () => {
     }
     // eslint-disable-next-line
   }, [showRewardedModal]);
-
-  // Show ad when modal opens
-  useEffect(() => {
-    if (showAdModal && window.googletag && window.googletag.cmd) {
-      window.googletag.cmd.push(function () {
-        // window.googletag.display(GPT_AD_UNIT_ID); // Removed GPT_AD_UNIT_ID
-      });
-    }
-  }, [showAdModal]);
 
   const lengthConfigs = {
     short: {
@@ -265,15 +255,6 @@ const TryScreen = () => {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
-  };
-
-  const handleWatchAd = () => {
-    setShowAdModal(true);
-  };
-
-  const handleAdFinished = () => {
-    setShowAdModal(false);
-    setCredits((c) => c + 1);
   };
 
   const generateContent = async () => {
@@ -659,23 +640,20 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
           document.body
         )}
       {/* Replace Simulated Rewarded Ad Modal with real ad modal */}
-      {showAdModal && (
+      {showRewardedModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 max-w-xl w-full mx-2 text-center">
-            <div className="mb-4 text-lg font-semibold text-primary-main">Watch Ad to Earn Credit</div>
-            <div className="mb-2 text-primary-main">Please watch the ad below. When finished, close this window to claim your credit.</div>
-            <div className="flex justify-center items-center w-full min-h-[300px]">
-              <div id={REWARDED_AD_UNIT} style={{ minWidth: 768, minHeight: 768, margin: '0 auto' }}></div>
-            </div>
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full text-center modal">
+            <div className="mb-4 text-lg font-semibold text-primary-main">Watch the ad to continue.</div>
+            <div className="mb-4 text-primary-main">You can close this window after 30 seconds.</div>
             <button
-              className="w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-4"
-              onClick={() => {
-                setShowAdModal(false);
-                setCredits((c) => c + 1);
-              }}
+              className="btn w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-2"
+              style={{ display: rewardedCloseVisible ? 'block' : 'none' }}
+              onClick={() => setShowRewardedModal(false)}
+              disabled={!rewardedCloseVisible}
             >
-              Close & Claim 1 Credit
+              Close Ad
             </button>
+            {rewardedLoading && <div className="mt-4 text-primary-light">Loading ad...</div>}
           </div>
         </div>
       )}
@@ -694,7 +672,7 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
               className="w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-2"
               onClick={() => {
                 setShowOutOfCreditsModal(false);
-                setShowAdModal(true); // Open the ad modal
+                handleShowRewardedAd(); // Use the new rewarded ad handler
               }}
             >
               Watch Ad
@@ -705,24 +683,6 @@ Write a ${captionLength} Instagram caption that is engaging, authentic, and rele
             >
               Cancel
             </button>
-          </div>
-        </div>
-      )}
-      {/* Rewarded Ad Modal */}
-      {showRewardedModal && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full text-center modal">
-            <div className="mb-4 text-lg font-semibold text-primary-main">Watch the ad to continue.</div>
-            <div className="mb-4 text-primary-main">You can close this window after 30 seconds.</div>
-            <button
-              className="btn w-full py-2 rounded-lg bg-accent-teal text-white font-medium mt-2"
-              style={{ display: rewardedCloseVisible ? 'block' : 'none' }}
-              onClick={() => setShowRewardedModal(false)}
-              disabled={!rewardedCloseVisible}
-            >
-              Close Ad
-            </button>
-            {rewardedLoading && <div className="mt-4 text-primary-light">Loading ad...</div>}
           </div>
         </div>
       )}
