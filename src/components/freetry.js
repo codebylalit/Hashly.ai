@@ -23,7 +23,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import ImageUpload from "./imgupload";
 
 // Initialize Google AI
-const genAI = new GoogleGenerativeAI("AIzaSyA4LQ-Ic5Mo35NJ-ECVq3okfbw31uQSrcs");
+const genAI = new GoogleGenerativeAI("AIzaSyDLtC9Kx-RO7OqLlUSdYhWBPPQ6zByc3Hs");
 
 const INITIAL_CREDITS = 5;
 const CREDITS_KEY = 'hashly_image_credits';
