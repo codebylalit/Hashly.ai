@@ -1,19 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const Contact = () => {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Name is required.';
+    if (!form.name.trim()) errs.name = "Name is required.";
     if (!form.email.trim()) {
-      errs.email = 'Email is required.';
+      errs.email = "Email is required.";
     } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) {
-      errs.email = 'Enter a valid email.';
+      errs.email = "Enter a valid email.";
     }
-    if (!form.message.trim()) errs.message = 'Message is required.';
+    if (!form.message.trim()) errs.message = "Message is required.";
     return errs;
   };
 
@@ -22,22 +23,51 @@ const Contact = () => {
     setErrors({ ...errors, [e.target.name]: undefined });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
     }
-    setSubmitted(true);
-    setForm({ name: '', email: '', message: '' });
+
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("email", form.email);
+      formData.append("message", form.message);
+
+      const response = await fetch("https://formspree.io/f/xanojqab", {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        setForm({ name: "", email: "", message: "" });
+      } else {
+        throw new Error("Failed to submit form");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setErrors({ submit: "Failed to send message. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background-main py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-main mb-4">Contact Us</h1>
+          <h1 className="text-3xl font-bold text-primary-main mb-4">
+            Contact Us
+          </h1>
           <p className="text-text-secondary">
             Have questions or feedback? We'd love to hear from you.
           </p>
@@ -52,7 +82,10 @@ const Contact = () => {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-primary-main mb-1">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-primary-main mb-1"
+                >
                   Name
                 </label>
                 <input
@@ -62,7 +95,7 @@ const Contact = () => {
                   value={form.name}
                   onChange={handleChange}
                   className={`w-full px-4 py-2 rounded-lg border ${
-                    errors.name ? 'border-red-500' : 'border-border-light'
+                    errors.name ? "border-red-500" : "border-border-light"
                   } bg-background-main text-primary-main focus:outline-none focus:ring-2 focus:ring-accent-teal`}
                   aria-invalid={!!errors.name}
                   aria-describedby="name-error"
@@ -75,7 +108,10 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-primary-main mb-1">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-primary-main mb-1"
+                >
                   Email
                 </label>
                 <input
@@ -85,7 +121,7 @@ const Contact = () => {
                   value={form.email}
                   onChange={handleChange}
                   className={`w-full px-4 py-2 rounded-lg border ${
-                    errors.email ? 'border-red-500' : 'border-border-light'
+                    errors.email ? "border-red-500" : "border-border-light"
                   } bg-background-main text-primary-main focus:outline-none focus:ring-2 focus:ring-accent-teal`}
                   aria-invalid={!!errors.email}
                   aria-describedby="email-error"
@@ -98,7 +134,10 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-primary-main mb-1">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-primary-main mb-1"
+                >
                   Message
                 </label>
                 <textarea
@@ -108,7 +147,7 @@ const Contact = () => {
                   onChange={handleChange}
                   rows={4}
                   className={`w-full px-4 py-2 rounded-lg border ${
-                    errors.message ? 'border-red-500' : 'border-border-light'
+                    errors.message ? "border-red-500" : "border-border-light"
                   } bg-background-main text-primary-main focus:outline-none focus:ring-2 focus:ring-accent-teal`}
                   aria-invalid={!!errors.message}
                   aria-describedby="message-error"
@@ -120,11 +159,22 @@ const Contact = () => {
                 )}
               </div>
 
+              {errors.submit && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  <p className="text-sm">{errors.submit}</p>
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="w-full bg-accent-teal text-text-light font-medium py-2 px-4 rounded-lg hover:bg-accent-orange transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent-teal focus:ring-offset-2"
+                disabled={isSubmitting}
+                className={`w-full font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent-teal focus:ring-offset-2 ${
+                  isSubmitting
+                    ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                    : "bg-accent-teal text-text-light hover:bg-accent-orange"
+                }`}
               >
-                Send Message
+                {isSubmitting ? "Sending..." : "Send Message"}
               </button>
             </form>
           )}
@@ -144,4 +194,4 @@ const Contact = () => {
   );
 };
 
-export default Contact; 
+export default Contact;
