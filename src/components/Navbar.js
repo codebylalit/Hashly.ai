@@ -4,7 +4,7 @@ import logo from "../logo4.png";
 
 const navLinks = [
   { to: "/try", label: "Try Free" },
-  { to: "/blog", label: "Blogs" },
+  // { to: "/blog", label: "Blogs" },
   { to: "/about", label: "About" },
   { to: "/faq", label: "FAQ" },
   { to: "/contact", label: "Contact" },
